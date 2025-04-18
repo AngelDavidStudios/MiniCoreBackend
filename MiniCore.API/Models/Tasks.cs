@@ -2,8 +2,8 @@ using Amazon.DynamoDBv2.DataModel;
 
 namespace MiniCore.API.Models;
 
-[DynamoDBTable("Task")]
-public class Task
+[DynamoDBTable("TaskCore")]
+public class Tasks
 {
     [DynamoDBHashKey("id")]
     public string Id { get; set; }

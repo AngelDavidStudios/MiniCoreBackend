@@ -21,8 +21,8 @@ public class Project
     public string FechaFin { get; set; }
     
     [DynamoDBProperty]
-    public List<string> EmpleadosAsignados { get; set; } // IDs de los empleados
+    public List<string>? EmpleadosAsignados { get; set; } // IDs de los empleados
     
     [DynamoDBProperty]
-    public List<Tasks> Tareas { get; set; }
+    public List<Tasks>? Tareas { get; set; }
 }

@@ -2,25 +2,14 @@ using Amazon.DynamoDBv2.DataModel;
 
 namespace MiniCore.API.Models;
 
-[DynamoDBTable("TaskCore")]
 public class Tasks
 {
-    [DynamoDBHashKey("id")]
-    public string Id { get; set; }
-    
-    [DynamoDBProperty]
+    public string id { get; set; }
     public string Titulo { get; set; }
-    
-    [DynamoDBProperty]
     public string Descripcion { get; set; }
-    
-    [DynamoDBProperty]
     public string FechaAsignada { get; set; }
-    
-    [DynamoDBProperty]
-    public string FechaLimite { get; set; }
-
-    [DynamoDBProperty] public EstadoTarea Estado { get; set; } = EstadoTarea.Pendiente;
+    public string FechaLimite { get; set; } 
+    public EstadoTarea Estado { get; set; } = EstadoTarea.Pendiente;
 }
 
 public enum EstadoTarea

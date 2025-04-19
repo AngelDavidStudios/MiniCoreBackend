@@ -24,6 +24,7 @@ builder.Services.AddScoped<IDynamoDBContext, DynamoDBContext>();
 // Repositories
 builder.Services.AddScoped<IRepository<Empleado>, EmpleadoRepository>();
 builder.Services.AddScoped<IRepository<Project>, ProjectRepository>();
+builder.Services.AddScoped<ITasksRepository, TasksRepository>();
 
 var app = builder.Build();
 

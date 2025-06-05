@@ -165,6 +165,3 @@ jobs:
                   echo "Container does not exist. No action taken."
               fi
               sudo docker run -d --name $CONTAINER_NAME -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development $REGISTRY/$REPOSITORY:$IMAGE_TAG
-      with:
-        name: MSIX Package
-        path: ${{ env.Wap_Project_Directory }}\AppPackages

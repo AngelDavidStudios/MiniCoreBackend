@@ -100,7 +100,7 @@ jobs:
       - name: Publish self-contained
         id: publish
         run: |
-          dotnet publish src/YourApiProject.csproj \
+          dotnet publish MiniCore.API/MiniCore.API.csproj \
             -c Release \
             -o ./publish \
             --no-build

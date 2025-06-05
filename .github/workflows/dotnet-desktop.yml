@@ -102,7 +102,7 @@ jobs:
         run: |
           dotnet publish MiniCore.API/MiniCore.API.csproj \
             -c Release \
-            -o ./publish \
+            -o ./publish
           echo "path=./publish" >> "$GITHUB_OUTPUT"
       - name: Archive artifact
         uses: actions/upload-artifact@v4

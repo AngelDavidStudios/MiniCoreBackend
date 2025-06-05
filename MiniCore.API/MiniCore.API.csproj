@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <AWSProjectType>Lambda</AWSProjectType>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -16,6 +17,12 @@
         <PackageReference Include="AWSSDK.SSOOIDC" Version="3.7.401.15" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.11"/>
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>

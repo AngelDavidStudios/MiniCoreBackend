@@ -122,7 +122,7 @@ jobs:
       - name: Configure credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: "arn:aws:cloudformation:us-east-1:462977977700:stack/ci-cd-pipeline/51f1a650-4255-11f0-8cb9-0afff546b509"
+          role-to-assume: arn:aws:iam::462977977700:role/ec2-role
           aws-region: ${{env.AWS_REGION}}
 
       - name: Login to ECR repo

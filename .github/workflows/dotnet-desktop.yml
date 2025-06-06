@@ -34,18 +34,22 @@
 #
 # For more information on GitHub Actions, refer to https://github.com/features/actions
 # For a complete CI/CD sample to get started with GitHub Action workflows for Desktop Applications,
-# refer to https://github.com/microsoft/github-actions-for-desktop-apps
+# refer to https://github.com/microsoft/github-actions-for-desktop-app
 
-name: .NET Core Desktop
+name: CI/CD API
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 env:
   DOTNET_VERSION: "8.0.x"
+  AWS_REGION: us-east-1
+  CONTAINER_NAME: api-management
+
+permissions:
+    id-token: write
+    contents: read
 
 jobs:
   checkout:
@@ -96,10 +100,9 @@ jobs:
       - name: Publish self-contained
         id: publish
         run: |
-          dotnet publish src/YourApiProject.csproj \
+          dotnet publish MiniCore.API/MiniCore.API.csproj \
             -c Release \
-            -o ./publish \
-            --no-build
+            -o ./publish
           echo "path=./publish" >> "$GITHUB_OUTPUT"
       - name: Archive artifact
         uses: actions/upload-artifact@v4
@@ -111,26 +114,53 @@ jobs:
     name: 5️⃣ Deploy to EC2
     needs: package
     runs-on: ubuntu-latest
-    environment: production               # aparecerá en la pestaña “Environments”
+    environment: production
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      
+      - name: Configure credentials
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          name: api_publish
-          path: ./publish
+          role-to-assume: arn:aws:iam::462977977700:role/ci-cd-pipeline-Role-q68414RG0K5v
+          aws-region: ${{env.AWS_REGION}}
 
-      - name: Add SSH key
-        uses: webfactory/ssh-agent@v0.9.0
+      - name: Login to ECR repo
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build, tag and push image to ecr
+        env:
+          REGISTRY: ${{steps.login-ecr.outputs.registry}}
+          REPOSITORY: angeldavid/ci-cd-repo
+          IMAGE_TAG: ${{github.sha}}
+        run: |-
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+      - name: Deploy to EC2
+        env:
+          REPOSITORY: books-repo
+          REGISTRY: ${{steps.login-ecr.outputs.registry}}
+          IMAGE_TAG: ${{github.sha}}
+          EC2_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+          HOSTNAME: ${{secrets.HOST}}
+          USER_NAME: ${{secrets.USERNAME}}
+        uses: appleboy/ssh-action@v1.1.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Copy files (rsync)
-        run: |
-          rsync -avz --delete ./publish/ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/api/
-
-      - name: Restart service
-        run: |
-          ssh -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "sudo systemctl restart ${SERVICE_NAME:-myapi}"
+          host: ${{env.HOSTNAME}}
+          port: 22
+          key: ${{env.EC2_PRIVATE_KEY}}
+          username: ${{env.USER_NAME}}
+          envs: REGISTRY, REPOSITORY, IMAGE_TAG, AWS_REGION, CONTAINER_NAME
+          script: |-
+              aws ecr get-login-password --region $AWS_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
+              sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+              if sudo docker ps -a --format '{{.Names}}' | grep -w "$CONTAINER_NAME" > /dev/null; then
+                  echo "Container '$CONTAINER_NAME' exists. Stopping..."
+                  sudo docker stop "$CONTAINER_NAME"
+                  sudo docker rm "$CONTAINER_NAME"
+              else
+                  echo "Container does not exist. No action taken."
+              fi
+              sudo docker run -d --name $CONTAINER_NAME -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development $REGISTRY/$REPOSITORY:$IMAGE_TAG

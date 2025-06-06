@@ -45,7 +45,7 @@ on:
 env:
   DOTNET_VERSION: "8.0.x"
   AWS_REGION: us-east-1
-  CONTAINER_NAME: angeldavid/ci-cd-repo
+  CONTAINER_NAME: api-management
 
 permissions:
     id-token: write
@@ -122,7 +122,7 @@ jobs:
       - name: Configure credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::462977977700:role/ec2-role
+          role-to-assume: arn:aws:iam::462977977700:role/ci-cd-pipeline-Role-q68414RG0K5v
           aws-region: ${{env.AWS_REGION}}
 
       - name: Login to ECR repo
@@ -132,7 +132,7 @@ jobs:
       - name: Build, tag and push image to ecr
         env:
           REGISTRY: ${{steps.login-ecr.outputs.registry}}
-          REPOSITORY: <the-name-of-repo-you-created-on-ecr>
+          REPOSITORY: angeldavid/ci-cd-repo
           IMAGE_TAG: ${{github.sha}}
         run: |-
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
